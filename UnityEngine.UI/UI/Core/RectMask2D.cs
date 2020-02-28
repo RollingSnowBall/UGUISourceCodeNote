@@ -149,6 +149,7 @@ namespace UnityEngine.UI
             }
         }
 
+        //Layout重建之后调用
         public virtual void PerformClipping()
         {
             if (ReferenceEquals(Canvas, null))

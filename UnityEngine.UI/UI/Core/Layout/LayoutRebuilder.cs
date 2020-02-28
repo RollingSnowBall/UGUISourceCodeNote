@@ -21,6 +21,7 @@ namespace UnityEngine.UI
 
         private void Initialize(RectTransform controller)
         {
+            //这里是需要重建的RectTransform的根节点
             m_ToRebuild = controller;
             m_CachedHashFromTransform = controller.GetHashCode();
         }
@@ -72,15 +73,16 @@ namespace UnityEngine.UI
             s_Rebuilders.Release(rebuilder);
         }
 
+        //具体重建过程，当Canvas调用重建时执行
         public void Rebuild(CanvasUpdate executing)
         {
             switch (executing)
             {
                 case CanvasUpdate.Layout:
-                    // It's unfortunate that we'll perform the same GetComponents querys for the tree 2 times,
-                    // but each tree have to be fully iterated before going to the next action,
-                    // so reusing the results would entail storing results in a Dictionary or similar,
-                    // which is probably a bigger overhead than performing GetComponents multiple times.
+                    //ILayoutElement: LayoutElement Text LayoutGroup ScrollRect
+                    //ILayoutController: LayoutGroup AspectRatioFitter ContentSizeFitter
+                    //PerformLayoutCalculation 迭代带有 ILayoutGroup            的子节点
+                    //PerformLayoutControl     迭代带有 ILayoutSelfController   的子节点
                     PerformLayoutCalculation(m_ToRebuild, e => (e as ILayoutElement).CalculateLayoutInputHorizontal());
                     PerformLayoutControl(m_ToRebuild, e => (e as ILayoutController).SetLayoutHorizontal());
                     PerformLayoutCalculation(m_ToRebuild, e => (e as ILayoutElement).CalculateLayoutInputVertical());
@@ -98,9 +100,6 @@ namespace UnityEngine.UI
             rect.GetComponents(typeof(ILayoutController), components);
             StripDisabledBehavioursFromList(components);
 
-            // If there are no controllers on this rect we can skip this entire sub-tree
-            // We don't need to consider controllers on children deeper in the sub-tree either,
-            // since they will be their own roots.
             if (components.Count > 0)
             {
                 // Layout control needs to executed top down with parents being done before their children,
@@ -130,11 +129,9 @@ namespace UnityEngine.UI
 
             var components = ListPool<Component>.Get();
             rect.GetComponents(typeof(ILayoutElement), components);
+            //如果没有显示则从重建列表中删除
             StripDisabledBehavioursFromList(components);
 
-            // If there are no controllers on this rect we can skip this entire sub-tree
-            // We don't need to consider controllers on children deeper in the sub-tree either,
-            // since they will be their own roots.
             if (components.Count > 0  || rect.GetComponent(typeof(ILayoutGroup)))
             {
                 // Layout calculations needs to executed bottom up with children being done before their parents,
@@ -150,19 +147,17 @@ namespace UnityEngine.UI
             ListPool<Component>.Release(components);
         }
 
-        /// <summary>
-        /// Mark the given RectTransform as needing it's layout to be recalculated during the next layout pass.
-        /// </summary>
-        /// <param name="rect">Rect to rebuild.</param>
+        //重建RectTransform
         public static void MarkLayoutForRebuild(RectTransform rect)
         {
             if (rect == null || rect.gameObject == null)
                 return;
 
             var comps = ListPool<Component>.Get();
-            bool validLayoutGroup = true;
+            bool validLayoutGroup = true;//这里的有效是指rect的父节点包含LayoutGroup
             RectTransform layoutRoot = rect;
             var parent = layoutRoot.parent as RectTransform;
+            //迭代向上查找有LayoutGroup的父节点，直到第一个没有的节点
             while (validLayoutGroup && !(parent == null || parent.gameObject == null))
             {
                 validLayoutGroup = false;
@@ -181,9 +176,9 @@ namespace UnityEngine.UI
 
                 parent = parent.parent as RectTransform;
             }
-
-            // We know the layout root is valid if it's not the same as the rect,
-            // since we checked that above. But if they're the same we still need to check.
+            //如果想要重建的rectTransform的父节点没有包含LayoutGroup,
+            //并且他本身又没有LayoutController比如LayoutGroup AspectRatioFitter ContentSizeFitter，就不需要重建Layout。
+            //也就是自己不控制子物体的layout也没有父物体的layout控制他，自己也没有layout需要控制
             if (layoutRoot == rect && !ValidController(layoutRoot, comps))
             {
                 ListPool<Component>.Release(comps);
@@ -212,6 +207,7 @@ namespace UnityEngine.UI
             return false;
         }
 
+        //创建Rebuilder,提交给CanvasUpdateRegistry的队列中，等待重建
         private static void MarkLayoutRootForRebuild(RectTransform controller)
         {
             if (controller == null)

@@ -9,29 +9,17 @@ namespace UnityEngine.UI
     /// </summary>
     public enum CanvasUpdate
     {
-        /// <summary>
-        /// Called before layout.
-        /// </summary>
+        //layout之前
         Prelayout = 0,
-        /// <summary>
-        /// Called for layout.
-        /// </summary>
+        //layout
         Layout = 1,
-        /// <summary>
-        /// Called after layout.
-        /// </summary>
+        //layout之后
         PostLayout = 2,
-        /// <summary>
-        /// Called before rendering.
-        /// </summary>
+        //render之前
         PreRender = 3,
-        /// <summary>
-        /// Called late, before render.
-        /// </summary>
+        //render之后
         LatePreRender = 4,
-        /// <summary>
-        /// Max enum value. Always last.
-        /// </summary>
+        //最后
         MaxUpdateValue = 5
     }
 
@@ -99,6 +87,7 @@ namespace UnityEngine.UI
             }
         }
 
+        //确定为Unity的object，不是system的object
         private bool ObjectValidForUpdate(ICanvasElement element)
         {
             var valid = element != null;
@@ -110,6 +99,7 @@ namespace UnityEngine.UI
             return valid;
         }
 
+        //在重建之前需要清理重建列表中不合格的item
         private void CleanInvalidItems()
         {
             // So MB's override the == operator for null equality, which checks
@@ -152,13 +142,18 @@ namespace UnityEngine.UI
         }
 
         private static readonly Comparison<ICanvasElement> s_SortLayoutFunction = SortLayoutList;
+
+        //Canvas.willRenderCanvases += PerformUpdate
+        //当Canvas需要重绘的时候会调用SendWillRenderCanvases.(逆向UnityEngine.dll)
+        //这个函数就会调用Canvas.willRenderCanvases
         private void PerformUpdate()
         {
             UISystemProfilerApi.BeginSample(UISystemProfilerApi.SampleType.Layout);
             CleanInvalidItems();
 
+            /***************************-------Layout-------*****************************************/
             m_PerformingLayoutUpdate = true;
-
+            //按照父节点的数量排序
             m_LayoutRebuildQueue.Sort(s_SortLayoutFunction);
             for (int i = 0; i <= (int)CanvasUpdate.PostLayout; i++)
             {
@@ -182,6 +177,7 @@ namespace UnityEngine.UI
 
             instance.m_LayoutRebuildQueue.Clear();
             m_PerformingLayoutUpdate = false;
+            /******************************-------Layout-------**************************************/
 
             // now layout is complete do culling...
             ClipperRegistry.instance.Cull();
@@ -209,6 +205,7 @@ namespace UnityEngine.UI
 
             instance.m_GraphicRebuildQueue.Clear();
             m_PerformingGraphicUpdate = false;
+
             UISystemProfilerApi.EndSample(UISystemProfilerApi.SampleType.Layout);
         }
 
@@ -227,6 +224,7 @@ namespace UnityEngine.UI
             return count;
         }
 
+        //重建layout列表按照父节点的数量排序
         private static int SortLayoutList(ICanvasElement x, ICanvasElement y)
         {
             Transform t1 = x.transform;
@@ -235,29 +233,15 @@ namespace UnityEngine.UI
             return ParentCount(t1) - ParentCount(t2);
         }
 
-        /// <summary>
-        /// Try and add the given element to the layout rebuild list.
-        /// Will not return if successfully added.
-        /// </summary>
-        /// <param name="element">The element that is needing rebuilt.</param>
+        /***************************-----注册需要重建的layout-----******************************/
         public static void RegisterCanvasElementForLayoutRebuild(ICanvasElement element)
         {
             instance.InternalRegisterCanvasElementForLayoutRebuild(element);
         }
-
-        /// <summary>
-        /// Try and add the given element to the layout rebuild list.
-        /// </summary>
-        /// <param name="element">The element that is needing rebuilt.</param>
-        /// <returns>
-        /// True if the element was successfully added to the rebuilt list.
-        /// False if either already inside a Graphic Update loop OR has already been added to the list.
-        /// </returns>
         public static bool TryRegisterCanvasElementForLayoutRebuild(ICanvasElement element)
         {
             return instance.InternalRegisterCanvasElementForLayoutRebuild(element);
         }
-
         private bool InternalRegisterCanvasElementForLayoutRebuild(ICanvasElement element)
         {
             if (m_LayoutRebuildQueue.Contains(element))
@@ -272,25 +256,13 @@ namespace UnityEngine.UI
 
             return m_LayoutRebuildQueue.AddUnique(element);
         }
+        /*********************************************************/
 
-        /// <summary>
-        /// Try and add the given element to the rebuild list.
-        /// Will not return if successfully added.
-        /// </summary>
-        /// <param name="element">The element that is needing rebuilt.</param>
+
         public static void RegisterCanvasElementForGraphicRebuild(ICanvasElement element)
         {
             instance.InternalRegisterCanvasElementForGraphicRebuild(element);
         }
-
-        /// <summary>
-        /// Try and add the given element to the rebuild list.
-        /// </summary>
-        /// <param name="element">The element that is needing rebuilt.</param>
-        /// <returns>
-        /// True if the element was successfully added to the rebuilt list.
-        /// False if either already inside a Graphic Update loop OR has already been added to the list.
-        /// </returns>
         public static bool TryRegisterCanvasElementForGraphicRebuild(ICanvasElement element)
         {
             return instance.InternalRegisterCanvasElementForGraphicRebuild(element);
@@ -306,6 +278,7 @@ namespace UnityEngine.UI
 
             return m_GraphicRebuildQueue.AddUnique(element);
         }
+
 
         /// <summary>
         /// Remove the given element from both the graphic and the layout rebuild lists.

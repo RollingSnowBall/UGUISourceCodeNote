@@ -6,6 +6,7 @@ namespace UnityEngine.UI
 {
     internal static class SetPropertyUtility
     {
+        //Color的rgba都相同的情况就默认相同
         public static bool SetColor(ref Color currentValue, Color newValue)
         {
             if (currentValue.r == newValue.r && currentValue.g == newValue.g && currentValue.b == newValue.b && currentValue.a == newValue.a)

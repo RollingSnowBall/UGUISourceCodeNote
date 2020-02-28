@@ -79,13 +79,8 @@ namespace UnityEngine.UI
         : UIBehaviour,
           ICanvasElement
     {
+        //默认材质，如果没有指定就会从Canvas的取默认
         static protected Material s_DefaultUI = null;
-        static protected Texture2D s_WhiteTexture = null;
-
-        /// <summary>
-        /// Default material used to draw UI elements if no explicit material was specified.
-        /// </summary>
-
         static public Material defaultGraphicMaterial
         {
             get
@@ -95,6 +90,28 @@ namespace UnityEngine.UI
                 return s_DefaultUI;
             }
         }
+        public virtual Material defaultMaterial
+        {
+            get { return defaultGraphicMaterial; }
+        }
+
+        public virtual Material material
+        {
+            get
+            {
+                return (m_Material != null) ? m_Material : defaultMaterial;
+            }
+            set
+            {
+                if (m_Material == value)
+                    return;
+
+                m_Material = value;
+                SetMaterialDirty();
+            }
+        }
+
+        static protected Texture2D s_WhiteTexture = null;
 
         // Cached and saved values
         [FormerlySerializedAs("m_Mat")]
@@ -102,56 +119,10 @@ namespace UnityEngine.UI
 
         [SerializeField] private Color m_Color = Color.white;
 
-        /// <summary>
-        /// Base color of the Graphic.
-        /// </summary>
-        /// <remarks>
-        /// The builtin UI Components use this as their vertex color. Use this to fetch or change the Color of visual UI elements, such as an Image.
-        /// </remarks>
-        /// <example>
-        /// <code>
-        /// //Place this script on a GameObject with a Graphic component attached e.g. a visual UI element (Image).
-        ///
-        /// using UnityEngine;
-        /// using UnityEngine.UI;
-        ///
-        /// public class Example : MonoBehaviour
-        /// {
-        ///     Graphic m_Graphic;
-        ///     Color m_MyColor;
-        ///
-        ///     void Start()
-        ///     {
-        ///         //Fetch the Graphic from the GameObject
-        ///         m_Graphic = GetComponent<Graphic>();
-        ///         //Create a new Color that starts as red
-        ///         m_MyColor = Color.red;
-        ///         //Change the Graphic Color to the new Color
-        ///         m_Graphic.color = m_MyColor;
-        ///     }
-        ///
-        ///     // Update is called once per frame
-        ///     void Update()
-        ///     {
-        ///         //When the mouse button is clicked, change the Graphic Color
-        ///         if (Input.GetKey(KeyCode.Mouse0))
-        ///         {
-        ///             //Change the Color over time between blue and red while the mouse button is pressed
-        ///             m_MyColor = Color.Lerp(Color.red, Color.blue, Mathf.PingPong(Time.time, 1));
-        ///         }
-        ///         //Change the Graphic Color to the new Color
-        ///         m_Graphic.color = m_MyColor;
-        ///     }
-        /// }
-        /// </code>
-        /// </example>
         public virtual Color color { get { return m_Color; } set { if (SetPropertyUtility.SetColor(ref m_Color, value)) SetVerticesDirty(); } }
 
+        //是否接收点击事件
         [SerializeField] private bool m_RaycastTarget = true;
-
-        /// <summary>
-        /// Should this graphic be considered a target for raycasting?
-        /// </summary>
         public virtual bool raycastTarget { get { return m_RaycastTarget; } set { m_RaycastTarget = value; } }
 
         [NonSerialized] private RectTransform m_RectTransform;
@@ -172,6 +143,7 @@ namespace UnityEngine.UI
         [NonSerialized]
         private readonly TweenRunner<ColorTween> m_ColorTweenRunner;
 
+        //重构顶点几何，有几个组件使用新的接口比如Text，剩下的使用旧的
         protected bool useLegacyMeshGeneration { get; set; }
 
         // Called by Unity prior to deserialization,
@@ -184,10 +156,7 @@ namespace UnityEngine.UI
             useLegacyMeshGeneration = true;
         }
 
-        /// <summary>
-        /// Set all properties of the Graphic dirty and needing rebuilt.
-        /// Dirties Layout, Vertices, and Materials.
-        /// </summary>
+        //Layout, Vertices, and Materials
         public virtual void SetAllDirty()
         {
             SetLayoutDirty();
@@ -195,12 +164,12 @@ namespace UnityEngine.UI
             SetMaterialDirty();
         }
 
+        /*************************************-----Layout------****************************************************/
         /// <summary>
-        /// Mark the layout as dirty and needing rebuilt.
+        /// Layout重建包括收集需要重建的节点，执行重建
+        /// 收集需要重建的节点是从目标节点依次迭代父节点直到找到一个不包含ILayoutGroup的父节点作为根节点，或者目标节点继承自ILayoutController也可以作为根节点
+        /// 重建过程是依次遍历上面根节点的子节点，如果子节点是ILayoutElement则调用CalculateLayoutInput，如果子节点是ILayoutController则调用SetLayout
         /// </summary>
-        /// <remarks>
-        /// Send a OnDirtyLayoutCallback notification if any elements are registered. See RegisterDirtyLayoutCallback
-        /// </remarks>
         public virtual void SetLayoutDirty()
         {
             if (!IsActive())
@@ -211,13 +180,16 @@ namespace UnityEngine.UI
             if (m_OnDirtyLayoutCallback != null)
                 m_OnDirtyLayoutCallback();
         }
+        public void RegisterDirtyLayoutCallback(UnityAction action)
+        {
+            m_OnDirtyLayoutCallback += action;
+        }
+        public void UnregisterDirtyLayoutCallback(UnityAction action)
+        {
+            m_OnDirtyLayoutCallback -= action;
+        }
 
-        /// <summary>
-        /// Mark the vertices as dirty and needing rebuilt.
-        /// </summary>
-        /// <remarks>
-        /// Send a OnDirtyVertsCallback notification if any elements are registered. See RegisterDirtyVerticesCallback
-        /// </remarks>
+        /*************************************-----Vertices------****************************************************/
         public virtual void SetVerticesDirty()
         {
             if (!IsActive())
@@ -229,13 +201,16 @@ namespace UnityEngine.UI
             if (m_OnDirtyVertsCallback != null)
                 m_OnDirtyVertsCallback();
         }
+        public void RegisterDirtyVerticesCallback(UnityAction action)
+        {
+            m_OnDirtyVertsCallback += action;
+        }
+        public void UnregisterDirtyVerticesCallback(UnityAction action)
+        {
+            m_OnDirtyVertsCallback -= action;
+        }
 
-        /// <summary>
-        /// Mark the material as dirty and needing rebuilt.
-        /// </summary>
-        /// <remarks>
-        /// Send a OnDirtyMaterialCallback notification if any elements are registered. See RegisterDirtyMaterialCallback
-        /// </remarks>
+        /*************************************-----Material------****************************************************/
         public virtual void SetMaterialDirty()
         {
             if (!IsActive())
@@ -247,6 +222,15 @@ namespace UnityEngine.UI
             if (m_OnDirtyMaterialCallback != null)
                 m_OnDirtyMaterialCallback();
         }
+        public void RegisterDirtyMaterialCallback(UnityAction action)
+        {
+            m_OnDirtyMaterialCallback += action;
+        }
+        public void UnregisterDirtyMaterialCallback(UnityAction action)
+        {
+            m_OnDirtyMaterialCallback -= action;
+        }
+
 
         protected override void OnRectTransformDimensionsChange()
         {
@@ -301,15 +285,10 @@ namespace UnityEngine.UI
         /// </example>
         public int depth { get { return canvasRenderer.absoluteDepth; } }
 
-        /// <summary>
-        /// The RectTransform component used by the Graphic. Cached for speed.
-        /// </summary>
         public RectTransform rectTransform
         {
             get
             {
-                // The RectTransform is a required component that must not be destroyed. Based on this assumption, a
-                // null-reference check is sufficient.
                 if (ReferenceEquals(m_RectTransform, null))
                 {
                     m_RectTransform = GetComponent<RectTransform>();
@@ -318,12 +297,7 @@ namespace UnityEngine.UI
             }
         }
 
-        /// <summary>
-        /// A reference to the Canvas this Graphic is rendering to.
-        /// </summary>
-        /// <remarks>
-        /// In the situation where the Graphic is used in a hierarchy with multiple Canvases, the Canvas closest to the root will be used.
-        /// </remarks>
+        //这里缓存的Canvas是距离本对象最近的挂在Canvas的物体
         public Canvas canvas
         {
             get
@@ -340,7 +314,6 @@ namespace UnityEngine.UI
             gameObject.GetComponentsInParent(false, list);
             if (list.Count > 0)
             {
-                // Find the first active and enabled canvas.
                 for (int i = 0; i < list.Count; ++i)
                 {
                     if (list[i].isActiveAndEnabled)
@@ -369,33 +342,6 @@ namespace UnityEngine.UI
                     m_CanvasRenderer = GetComponent<CanvasRenderer>();
                 }
                 return m_CanvasRenderer;
-            }
-        }
-
-        /// <summary>
-        /// Returns the default material for the graphic.
-        /// </summary>
-        public virtual Material defaultMaterial
-        {
-            get { return defaultGraphicMaterial; }
-        }
-
-        /// <summary>
-        /// The Material set by the user
-        /// </summary>
-        public virtual Material material
-        {
-            get
-            {
-                return (m_Material != null) ? m_Material : defaultMaterial;
-            }
-            set
-            {
-                if (m_Material == value)
-                    return;
-
-                m_Material = value;
-                SetMaterialDirty();
             }
         }
 
@@ -514,13 +460,7 @@ namespace UnityEngine.UI
             }
         }
 
-        /// <summary>
-        /// Rebuilds the graphic geometry and its material on the PreRender cycle.
-        /// </summary>
-        /// <param name="update">The current step of the rendering CanvasUpdate cycle.</param>
-        /// <remarks>
-        /// See CanvasUpdateRegistry for more details on the canvas update cycle.
-        /// </remarks>
+        //具体重建过程，当Canvas调用重建时执行
         public virtual void Rebuild(CanvasUpdate update)
         {
             if (canvasRenderer.cull)
@@ -549,9 +489,7 @@ namespace UnityEngine.UI
         public virtual void GraphicUpdateComplete()
         {}
 
-        /// <summary>
-        /// Call to update the Material of the graphic onto the CanvasRenderer.
-        /// </summary>
+        //材质重建
         protected virtual void UpdateMaterial()
         {
             if (!IsActive())
@@ -573,6 +511,7 @@ namespace UnityEngine.UI
                 DoMeshGeneration();
         }
 
+        //自身的rectTransform信息更新到自身的Mesh和VerctHelper和Canvas中
         private void DoMeshGeneration()
         {
             if (rectTransform != null && rectTransform.rect.width >= 0 && rectTransform.rect.height >= 0)
@@ -592,8 +531,10 @@ namespace UnityEngine.UI
             canvasRenderer.SetMesh(workerMesh);
         }
 
+        //自身的rectTransform信息更新到自身的Mesh和VerctHelper和Canvas中
         private void DoLegacyMeshGeneration()
         {
+            //用自身的rectTransform填充一个mesh
             if (rectTransform != null && rectTransform.rect.width >= 0 && rectTransform.rect.height >= 0)
             {
 #pragma warning disable 618
@@ -604,7 +545,7 @@ namespace UnityEngine.UI
             {
                 workerMesh.Clear();
             }
-
+            //用mesh填充IMeshModifier组件
             var components = ListPool<Component>.Get();
             GetComponents(typeof(IMeshModifier), components);
 
@@ -632,31 +573,23 @@ namespace UnityEngine.UI
                 return s_Mesh;
             }
         }
+
+
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         [Obsolete("Use OnPopulateMesh instead.", true)]
         protected virtual void OnFillVBO(System.Collections.Generic.List<UIVertex> vbo) {}
 
         [Obsolete("Use OnPopulateMesh(VertexHelper vh) instead.", false)]
-        /// <summary>
-        /// Callback function when a UI element needs to generate vertices. Fills the vertex buffer data.
-        /// </summary>
-        /// <param name="m">Mesh to populate with UI data.</param>
-        /// <remarks>
-        /// Used by Text, UI.Image, and RawImage for example to generate vertices specific to their use case.
-        /// </remarks>
+        //把自身rectTransform的四个顶点及UV，两个面片，顶点颜色，填充到vertexHelper中
+        //在用这个vertexHelper填充一个mesh
         protected virtual void OnPopulateMesh(Mesh m)
         {
             OnPopulateMesh(s_VertexHelper);
             s_VertexHelper.FillMesh(m);
         }
 
-        /// <summary>
-        /// Callback function when a UI element needs to generate vertices. Fills the vertex buffer data.
-        /// </summary>
-        /// <param name="vh">VertexHelper utility.</param>
-        /// <remarks>
-        /// Used by Text, UI.Image, and RawImage for example to generate vertices specific to their use case.
-        /// </remarks>
+        //Used by Text, UI.Image, and RawImage for example to generate vertices specific to their use case.
+        //把自身rectTransform的四个顶点及UV，两个面片，顶点颜色，填充到vertexHelper中
         protected virtual void OnPopulateMesh(VertexHelper vh)
         {
             var r = GetPixelAdjustedRect();
@@ -742,7 +675,7 @@ namespace UnityEngine.UI
 
                     var filter = components[i] as ICanvasRaycastFilter;
 
-                    if (filter == null)
+                    if (filter == null)                           
                         continue;
 
                     var raycastValid = true;
@@ -876,60 +809,6 @@ namespace UnityEngine.UI
         public virtual void CrossFadeAlpha(float alpha, float duration, bool ignoreTimeScale)
         {
             CrossFadeColor(CreateColorFromAlpha(alpha), duration, ignoreTimeScale, true, false);
-        }
-
-        /// <summary>
-        /// Add a listener to receive notification when the graphics layout is dirtied.
-        /// </summary>
-        /// <param name="action">The method to call when invoked.</param>
-        public void RegisterDirtyLayoutCallback(UnityAction action)
-        {
-            m_OnDirtyLayoutCallback += action;
-        }
-
-        /// <summary>
-        /// Remove a listener from receiving notifications when the graphics layout are dirtied
-        /// </summary>
-        /// <param name="action">The method to call when invoked.</param>
-        public void UnregisterDirtyLayoutCallback(UnityAction action)
-        {
-            m_OnDirtyLayoutCallback -= action;
-        }
-
-        /// <summary>
-        /// Add a listener to receive notification when the graphics vertices are dirtied.
-        /// </summary>
-        /// <param name="action">The method to call when invoked.</param>
-        public void RegisterDirtyVerticesCallback(UnityAction action)
-        {
-            m_OnDirtyVertsCallback += action;
-        }
-
-        /// <summary>
-        /// Remove a listener from receiving notifications when the graphics vertices are dirtied
-        /// </summary>
-        /// <param name="action">The method to call when invoked.</param>
-        public void UnregisterDirtyVerticesCallback(UnityAction action)
-        {
-            m_OnDirtyVertsCallback -= action;
-        }
-
-        /// <summary>
-        /// Add a listener to receive notification when the graphics material is dirtied.
-        /// </summary>
-        /// <param name="action">The method to call when invoked.</param>
-        public void RegisterDirtyMaterialCallback(UnityAction action)
-        {
-            m_OnDirtyMaterialCallback += action;
-        }
-
-        /// <summary>
-        /// Remove a listener from receiving notifications when the graphics material are dirtied
-        /// </summary>
-        /// <param name="action">The method to call when invoked.</param>
-        public void UnregisterDirtyMaterialCallback(UnityAction action)
-        {
-            m_OnDirtyMaterialCallback -= action;
         }
     }
 }
