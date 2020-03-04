@@ -307,7 +307,6 @@ namespace UnityEngine.UI
                 return m_Canvas;
             }
         }
-
         private void CacheCanvas()
         {
             var list = ListPool<Canvas>.Get();
@@ -345,12 +344,7 @@ namespace UnityEngine.UI
             }
         }
 
-        /// <summary>
-        /// The material that will be sent for Rendering (Read only).
-        /// </summary>
-        /// <remarks>
-        /// This is the material that actually gets sent to the CanvasRenderer. By default it's the same as [[Graphic.material]]. When extending Graphic you can override this to send a different material to the CanvasRenderer than the one set by Graphic.material. This is useful if you want to modify the user set material in a non destructive manner.
-        /// </remarks>
+        //重新计算当前的材质，比如更新Mask的Stencil值
         public virtual Material materialForRendering
         {
             get
@@ -505,6 +499,8 @@ namespace UnityEngine.UI
         /// </summary>
         protected virtual void UpdateGeometry()
         {
+            //这两个的区别是传统的Mesh生成是将自身的recttransform数据生成vertexHelper，然后用vertexhelper生成mesh，再用mesh适配到每个需要mesh的组件
+            //新的是用vertexhelper生成mesh并且用vh适配到需要mesh的组件
             if (useLegacyMeshGeneration)
                 DoLegacyMeshGeneration();
             else
@@ -520,6 +516,7 @@ namespace UnityEngine.UI
                 s_VertexHelper.Clear(); // clear the vertex helper so invalid graphics dont draw.
 
             var components = ListPool<Component>.Get();
+            //PositionAsUV1 Shadow
             GetComponents(typeof(IMeshModifier), components);
 
             for (var i = 0; i < components.Count; i++)
@@ -672,7 +669,7 @@ namespace UnityEngine.UI
                     var canvas = components[i] as Canvas;
                     if (canvas != null && canvas.overrideSorting)
                         continueTraversal = false;
-
+                    //ICanvasRaycastFilter：Image    Mask    RectMask2D
                     var filter = components[i] as ICanvasRaycastFilter;
 
                     if (filter == null)                           
@@ -681,6 +678,7 @@ namespace UnityEngine.UI
                     var raycastValid = true;
 
                     var group = components[i] as CanvasGroup;
+                    //这里主要是对CanvasGroup的点击判断，CanvasGroup继承了ICanvasRaycastFilter，因此点击判定的时候需要对CanvasGroup的几个属性做处理
                     if (group != null)
                     {
                         if (ignoreParentGroups == false && group.ignoreParentGroups)
@@ -750,26 +748,11 @@ namespace UnityEngine.UI
                 return RectTransformUtility.PixelAdjustRect(rectTransform, canvas);
         }
 
-        ///<summary>
-        ///Tweens the CanvasRenderer color associated with this Graphic.
-        ///</summary>
-        ///<param name="targetColor">Target color.</param>
-        ///<param name="duration">Tween duration.</param>
-        ///<param name="ignoreTimeScale">Should ignore Time.scale?</param>
-        ///<param name="useAlpha">Should also Tween the alpha channel?</param>
+        //颜色渐变动画
         public virtual void CrossFadeColor(Color targetColor, float duration, bool ignoreTimeScale, bool useAlpha)
         {
             CrossFadeColor(targetColor, duration, ignoreTimeScale, useAlpha, true);
         }
-
-        ///<summary>
-        ///Tweens the CanvasRenderer color associated with this Graphic.
-        ///</summary>
-        ///<param name="targetColor">Target color.</param>
-        ///<param name="duration">Tween duration.</param>
-        ///<param name="ignoreTimeScale">Should ignore Time.scale?</param>
-        ///<param name="useAlpha">Should also Tween the alpha channel?</param>
-        /// <param name="useRGB">Should the color or the alpha be used to tween</param>
         public virtual void CrossFadeColor(Color targetColor, float duration, bool ignoreTimeScale, bool useAlpha, bool useRGB)
         {
             if (canvasRenderer == null || (!useRGB && !useAlpha))

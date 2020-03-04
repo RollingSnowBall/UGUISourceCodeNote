@@ -22,6 +22,7 @@ namespace UnityEngine.UI
                 return new Rect();
             }
 
+            //公共覆盖的相交的矩形
             var compoundRect = rectMaskParents[0].canvasRect;
             for (var i = 0; i < rectMaskParents.Count; ++i)
                 compoundRect = RectIntersect(compoundRect, rectMaskParents[i].canvasRect);

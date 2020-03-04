@@ -38,11 +38,7 @@ namespace UnityEngine.UI
             }
         }
 
-        /// <summary>
-        /// Store a link between the given canvas and graphic in the registry.
-        /// </summary>
-        /// <param name="c">The canvas the graphic will be associated to</param>
-        /// <param name="graphic">The graphic in question.</param>
+        /************************注册Canvas下面有多少Graphic*********************/
         public static void RegisterGraphicForCanvas(Canvas c, Graphic graphic)
         {
             if (c == null)
@@ -62,12 +58,6 @@ namespace UnityEngine.UI
             graphics.Add(graphic);
             instance.m_Graphics.Add(c, graphics);
         }
-
-        /// <summary>
-        /// Deregister the given Graphic from a Canvas.
-        /// </summary>
-        /// <param name="c">The canvas that should be associated with the graphic</param>
-        /// <param name="graphic">The graphic to remove.</param>
         public static void UnregisterGraphicForCanvas(Canvas c, Graphic graphic)
         {
             if (c == null)

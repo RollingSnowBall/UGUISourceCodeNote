@@ -28,10 +28,7 @@ namespace UnityEngine.UI
             ListPool<Component>.Release(components);
         }
 
-        /// <summary>
-        /// Notify all IMaskable under the given component that they need to recalculate masking.
-        /// </summary>
-        /// <param name="mask">The object thats changed for whose children should be notified.</param>
+        // Notify all IMaskable under the given component that they need to recalculate masking.
         public static void NotifyStencilStateChanged(Component mask)
         {
             var components = ListPool<Component>.Get();
@@ -48,11 +45,7 @@ namespace UnityEngine.UI
             ListPool<Component>.Release(components);
         }
 
-        /// <summary>
-        /// Find a root Canvas.
-        /// </summary>
-        /// <param name="start">Transform to start the search at going up the hierarchy.</param>
-        /// <returns>Finds either the most root canvas, or the first canvas that overrides sorting.</returns>
+        //查找第一个是overrideSorting的Canvas
         public static Transform FindRootSortOverrideCanvas(Transform start)
         {
             var canvasList = ListPool<Canvas>.Get();
@@ -72,12 +65,7 @@ namespace UnityEngine.UI
             return canvas != null ? canvas.transform : null;
         }
 
-        /// <summary>
-        /// Find the stencil depth for a given element.
-        /// </summary>
-        /// <param name="transform">The starting transform to search.</param>
-        /// <param name="stopAfter">Where the search of parents should stop</param>
-        /// <returns>What the proper stencil buffer index should be.</returns>
+        //transform到stopAfter中间有多少Mask
         public static int GetStencilDepth(Transform transform, Transform stopAfter)
         {
             var depth = 0;
@@ -107,12 +95,7 @@ namespace UnityEngine.UI
             return depth;
         }
 
-        /// <summary>
-        /// Helper function to determine if the child is a descendant of father or is father.
-        /// </summary>
-        /// <param name="father">The transform to compare against.</param>
-        /// <param name="child">The starting transform to search up the hierarchy.</param>
-        /// <returns>Is child equal to father or is a descendant.</returns>
+        //如果是 同一个 或者 child的上N层节点为father，返回true
         public static bool IsDescendantOrSelf(Transform father, Transform child)
         {
             if (father == null || child == null)
@@ -132,11 +115,7 @@ namespace UnityEngine.UI
             return false;
         }
 
-        /// <summary>
-        /// Find the correct RectMask2D for a given IClippable.
-        /// </summary>
-        /// <param name="clippable">Clippable to search from.</param>
-        /// <returns>The Correct RectMask2D</returns>
+        //查找clippable的transform最上层的RectMask2D
         public static RectMask2D GetRectMaskForClippable(IClippable clippable)
         {
             List<RectMask2D> rectMaskComponents = ListPool<RectMask2D>.Get();
@@ -184,6 +163,7 @@ namespace UnityEngine.UI
         /// </summary>
         /// <param name="clipper">Starting clipping object.</param>
         /// <param name="masks">The list of Rect masks</param>
+        /// clipper的最上层Canvas中间有多少RectMask2D
         public static void GetRectMasksForClip(RectMask2D clipper, List<RectMask2D> masks)
         {
             masks.Clear();

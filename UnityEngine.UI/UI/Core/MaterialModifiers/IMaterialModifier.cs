@@ -8,11 +8,7 @@ namespace UnityEngine.UI
     /// </remarks>
     public interface IMaterialModifier
     {
-        /// <summary>
-        /// Perform material modification in this function.
-        /// </summary>
-        /// <param name="baseMaterial">The material that is to be modified</param>
-        /// <returns>The modified material.</returns>
+        //修改材质
         Material GetModifiedMaterial(Material baseMaterial);
     }
 }

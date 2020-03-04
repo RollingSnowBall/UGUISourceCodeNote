@@ -146,12 +146,14 @@ namespace UnityEngine.UI
 
             // if we are at the first level...
             // we want to destroy what is there
+            //在该mask与最上层Canvas中间没有其他Mask
             if (desiredStencilBit == 1)
             {
+                //更换Mask的Material
                 var maskMaterial = StencilMaterial.Add(baseMaterial, 1, StencilOp.Replace, CompareFunction.Always, m_ShowMaskGraphic ? ColorWriteMask.All : 0);
                 StencilMaterial.Remove(m_MaskMaterial);
                 m_MaskMaterial = maskMaterial;
-
+                
                 var unmaskMaterial = StencilMaterial.Add(baseMaterial, 1, StencilOp.Zero, CompareFunction.Always, 0);
                 StencilMaterial.Remove(m_UnmaskMaterial);
                 m_UnmaskMaterial = unmaskMaterial;

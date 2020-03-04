@@ -52,6 +52,7 @@ namespace UnityEngine.UI
             {
                 if (m_Canvas == null)
                 {
+                    //这里获取的时最上层的Canvas
                     var list = ListPool<Canvas>.Get();
                     gameObject.GetComponentsInParent(false, list);
                     if (list.Count > 0)
@@ -164,6 +165,7 @@ namespace UnityEngine.UI
             // do a recalculate here
             if (m_ShouldRecalculateClipRects)
             {
+                //与最上层Canvas中间有多少RectMask2D
                 MaskUtilities.GetRectMasksForClip(this, m_Clippers);
                 m_ShouldRecalculateClipRects = false;
             }
@@ -171,14 +173,15 @@ namespace UnityEngine.UI
             // get the compound rects from
             // the clippers that are valid
             bool validRect = true;
+            //找到一个公共覆盖的相交的矩形
             Rect clipRect = Clipping.FindCullAndClipWorldRect(m_Clippers, out validRect);
 
             // If the mask is in ScreenSpaceOverlay/Camera render mode, its content is only rendered when its rect
             // overlaps that of the root canvas.
             RenderMode renderMode = Canvas.rootCanvas.renderMode;
-            bool maskIsCulled =
+            bool maskIsCulled = 
                 (renderMode == RenderMode.ScreenSpaceCamera || renderMode == RenderMode.ScreenSpaceOverlay) &&
-                !clipRect.Overlaps(rootCanvasRect, true);
+                !clipRect.Overlaps(rootCanvasRect, true);//两个矩形相交
 
             bool clipRectChanged = clipRect != m_LastClipRectCanvasSpace;
             bool forceClip = m_ForceClip;

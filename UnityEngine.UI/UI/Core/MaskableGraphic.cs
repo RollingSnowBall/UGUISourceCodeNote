@@ -10,50 +10,16 @@ namespace UnityEngine.UI
     public abstract class MaskableGraphic : Graphic, IClippable, IMaskable, IMaterialModifier
     {
         [NonSerialized]
-        protected bool m_ShouldRecalculateStencil = true;
+        protected bool m_ShouldRecalculateStencil = true;//重新计算模板
 
         [NonSerialized]
         protected Material m_MaskMaterial;
 
         [NonSerialized]
         private RectMask2D m_ParentMask;
-
-        // m_Maskable is whether this graphic is allowed to be masked or not. It has the matching public property maskable.
-        // The default for m_Maskable is true, so graphics under a mask are masked out of the box.
-        // The maskable property can be turned off from script by the user if masking is not desired.
-        // m_IncludeForMasking is whether we actually consider this graphic for masking or not - this is an implementation detail.
-        // m_IncludeForMasking should only be true if m_Maskable is true AND a parent of the graphic has an IMask component.
-        // Things would still work correctly if m_IncludeForMasking was always true when m_Maskable is, but performance would suffer.
+        //是否可以被Mask
         [NonSerialized]
         private bool m_Maskable = true;
-
-        [NonSerialized]
-        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        [Obsolete("Not used anymore.", true)]
-        protected bool m_IncludeForMasking = false;
-
-        [Serializable]
-        public class CullStateChangedEvent : UnityEvent<bool> {}
-
-        // Event delegates triggered on click.
-        [SerializeField]
-        private CullStateChangedEvent m_OnCullStateChanged = new CullStateChangedEvent();
-
-        /// <summary>
-        /// Callback issued when culling changes.
-        /// </summary>
-        /// <remarks>
-        /// Called whene the culling state of this MaskableGraphic either becomes culled or visible. You can use this to control other elements of your UI as culling happens.
-        /// </remarks>
-        public CullStateChangedEvent onCullStateChanged
-        {
-            get { return m_OnCullStateChanged; }
-            set { m_OnCullStateChanged = value; }
-        }
-
-        /// <summary>
-        /// Does this graphic allow masking.
-        /// </summary>
         public bool maskable
         {
             get { return m_Maskable; }
@@ -66,24 +32,46 @@ namespace UnityEngine.UI
                 SetMaterialDirty();
             }
         }
+        #region 没用
+        [NonSerialized]
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+        [Obsolete("Not used anymore.", true)]
+        protected bool m_IncludeForMasking = false;
 
         [NonSerialized]
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         [Obsolete("Not used anymore", true)]
         protected bool m_ShouldRecalculate = true;
 
+
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+        [Obsolete("Not used anymore.", true)]
+        public virtual void ParentMaskStateChanged() { }
+        #endregion
+
+        [Serializable]
+        public class CullStateChangedEvent : UnityEvent<bool> {}
+
+        // Event delegates triggered on click.
+        [SerializeField]
+        private CullStateChangedEvent m_OnCullStateChanged = new CullStateChangedEvent();
+        public CullStateChangedEvent onCullStateChanged
+        {
+            get { return m_OnCullStateChanged; }
+            set { m_OnCullStateChanged = value; }
+        }
+        
         [NonSerialized]
         protected int m_StencilValue;
 
-        /// <summary>
-        /// See IMaterialModifier.GetModifiedMaterial
-        /// </summary>
+        //根据该transform与第一个OverrideCanvas之间Mask的数量计算一个stencil值，重新设定Material的writeMask
         public virtual Material GetModifiedMaterial(Material baseMaterial)
         {
             var toUse = baseMaterial;
 
             if (m_ShouldRecalculateStencil)
             {
+                //m_StencilValue = 这个transform与第一个OverrideCanvas的中间有多少Mask
                 var rootCanvas = MaskUtilities.FindRootSortOverrideCanvas(transform);
                 m_StencilValue = maskable ? MaskUtilities.GetStencilDepth(transform, rootCanvas) : 0;
                 m_ShouldRecalculateStencil = false;
@@ -103,15 +91,13 @@ namespace UnityEngine.UI
             return toUse;
         }
 
-        /// <summary>
-        /// See IClippable.Cull
-        /// </summary>
+        //IClippable.Cull
         public virtual void Cull(Rect clipRect, bool validRect)
         {
+            //是否有重合
             var cull = !validRect || !clipRect.Overlaps(rootCanvasRect, true);
             UpdateCull(cull);
         }
-
         private void UpdateCull(bool cull)
         {
             if (canvasRenderer.cull != cull)
@@ -123,9 +109,7 @@ namespace UnityEngine.UI
             }
         }
 
-        /// <summary>
-        /// See IClippable.SetClipRect
-        /// </summary>
+        //See IClippable.SetClipRect
         public virtual void SetClipRect(Rect clipRect, bool validRect)
         {
             if (validRect)
@@ -185,10 +169,6 @@ namespace UnityEngine.UI
             SetMaterialDirty();
         }
 
-        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        [Obsolete("Not used anymore.", true)]
-        public virtual void ParentMaskStateChanged() {}
-
         protected override void OnCanvasHierarchyChanged()
         {
             base.OnCanvasHierarchyChanged();
@@ -219,6 +199,7 @@ namespace UnityEngine.UI
             }
         }
 
+        //更新作用于的RectMask，查找最上层的RectMask2D，并把自己放到他的Mask列表中
         private void UpdateClipParent()
         {
             var newParent = (maskable && IsActive()) ? MaskUtilities.GetRectMaskForClippable(this) : null;

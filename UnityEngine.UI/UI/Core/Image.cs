@@ -21,209 +21,60 @@ namespace UnityEngine.UI
         /// </summary>
         public enum Type
         {
-            /// <summary>
-            /// Displays the full Image
-            /// </summary>
-            /// <remarks>
-            /// This setting shows the entire image stretched across the Image's RectTransform
-            /// </remarks>
+            //显示全部图片，此设置显示整个图像拉伸图像的RectTransform
             Simple,
-
-            /// <summary>
-            /// Displays the Image as a 9-sliced graphic.
-            /// </summary>
-            /// <remarks>
-            /// A 9-sliced image displays a central area stretched across the image surrounded by a border comprising of 4 corners and 4 stretched edges.
-            ///
-            /// This has the effect of creating a resizable skinned rectangular element suitable for dialog boxes, windows, and general UI elements.
-            ///
-            /// Note: For this method to work properly the Sprite assigned to Image.sprite needs to have Sprite.border defined.
-            /// </remarks>
+            //九宫切图
             Sliced,
-
-            /// <summary>
-            /// Displays a sliced Sprite with its resizable sections tiled instead of stretched.
-            /// </summary>
-            /// <remarks>
-            /// A Tiled image behaves similarly to a UI.Image.Type.Sliced|Sliced image, except that the resizable sections of the image are repeated instead of being stretched. This can be useful for detailed UI graphics that do not look good when stretched.
-            ///
-            /// It uses the Sprite.border value to determine how each part (border and center) should be tiled.
-            ///
-            /// The Image sections will repeat the corresponding section in the Sprite until the whole section is filled. The corner sections will be unaffected and will draw in the same way as a Sliced Image. The edges will repeat along their lengths. The center section will repeat across the whole central part of the Image.
-            ///
-            /// The Image section will repeat the corresponding section in the Sprite until the whole section is filled.
-            ///
-            /// Be aware that if you are tiling a Sprite with borders or a packed sprite, a mesh will be generated to create the tiles. The size of the mesh will be limited to 16250 quads; if your tiling would require more tiles, the size of the tiles will be enlarged to ensure that the number of generated quads stays below this limit.
-            ///
-            /// For optimum efficiency, use a Sprite with no borders and with no packing, and make sure the Sprite.texture wrap mode is set to TextureWrapMode.Repeat.These settings will prevent the generation of additional geometry.If this is not possible, limit the number of tiles in your Image.
-            /// </remarks>
+            //图片的实际大小，如果图片是256X256的，Image小于256的话只可以显示一部分,可以使用九宫切图来重新确定大小，但是边缘不会改变.
             Tiled,
-
-            /// <summary>
-            /// Displays only a portion of the Image.
-            /// </summary>
-            /// <remarks>
-            /// A Filled Image will display a section of the Sprite, with the rest of the RectTransform left transparent. The Image.fillAmount determines how much of the Image to show, and Image.fillMethod controls the shape in which the Image will be cut.
-            ///
-            /// This can be used for example to display circular or linear status information such as timers, health bars, and loading bars.
-            /// </remarks>
+            //只显示图像的一部分，可以实现比如技能倒计时的效果。并且图片会根据RectTransform缩放
             Filled
         }
 
-        /// <summary>
-        /// The possible fill method types for a Filled Image.
-        /// </summary>
+        //当图片类型为Filled时的显示类别
         public enum FillMethod
         {
-            /// <summary>
-            /// The Image will be filled Horizontally.
-            /// </summary>
-            /// <remarks>
-            /// The Image will be Cropped at either left or right size depending on Image.fillOriging at the Image.fillAmount
-            /// </remarks>
             Horizontal,
-
-            /// <summary>
-            /// The Image will be filled Vertically.
-            /// </summary>
-            /// <remarks>
-            /// The Image will be Cropped at either top or Bottom size depending on Image.fillOrigin at the Image.fillAmount
-            /// </remarks>
             Vertical,
-
-            /// <summary>
-            /// The Image will be filled Radially with the radial center in one of the corners.
-            /// </summary>
-            /// <remarks>
-            /// For this method the Image.fillAmount represents an angle between 0 and 90 degrees. The Image will be cut by a line passing at the Image.fillOrigin at the specified angle.
-            /// </remarks>
             Radial90,
-
-            /// <summary>
-            /// The Image will be filled Radially with the radial center in one of the edges.
-            /// </summary>
-            /// <remarks>
-            /// For this method the Image.fillAmount represents an angle between 0 and 180 degrees. The Image will be cut by a line passing at the Image.fillOrigin at the specified angle.
-            /// </remarks>
             Radial180,
-
-            /// <summary>
-            /// The Image will be filled Radially with the radial center at the center.
-            /// </summary>
-            /// <remarks>
-            /// or this method the Image.fillAmount represents an angle between 0 and 360 degrees. The Arc defined by the center of the Image, the Image.fillOrigin and the angle will be cut from the Image.
-            /// </remarks>
             Radial360,
         }
-
-        /// <summary>
-        /// Origin for the Image.FillMethod.Horizontal.
-        /// </summary>
+        //Origin for the Image.FillMethod.Horizontal.
         public enum OriginHorizontal
         {
-            /// <summary>
-            /// >Origin at the Left side.
-            /// </summary>
             Left,
-
-            /// <summary>
-            /// >Origin at the Right side.
-            /// </summary>
             Right,
         }
-
-
-        /// <summary>
-        /// Origin for the Image.FillMethod.Vertical.
-        /// </summary>
+        // Origin for the Image.FillMethod.Vertical.
         public enum OriginVertical
         {
-            /// <summary>
-            /// >Origin at the Bottom Edge.
-            /// </summary>
             Bottom,
-
-            /// <summary>
-            /// >Origin at the Top Edge.
-            /// </summary>
             Top,
         }
 
-        /// <summary>
-        /// Origin for the Image.FillMethod.Radial90.
-        /// </summary>
+        // Origin for the Image.FillMethod.Radial90.
         public enum Origin90
         {
-            /// <summary>
-            /// Radial starting at the Bottom Left corner.
-            /// </summary>
             BottomLeft,
-
-            /// <summary>
-            /// Radial starting at the Top Left corner.
-            /// </summary>
             TopLeft,
-
-            /// <summary>
-            /// Radial starting at the Top Right corner.
-            /// </summary>
             TopRight,
-
-            /// <summary>
-            /// Radial starting at the Bottom Right corner.
-            /// </summary>
             BottomRight,
         }
-
-        /// <summary>
-        /// Origin for the Image.FillMethod.Radial180.
-        /// </summary>
+        // Origin for the Image.FillMethod.Radial180.
         public enum Origin180
         {
-            /// <summary>
-            /// Center of the radial at the center of the Bottom edge.
-            /// </summary>
             Bottom,
-
-            /// <summary>
-            /// Center of the radial at the center of the Left edge.
-            /// </summary>
             Left,
-
-            /// <summary>
-            /// Center of the radial at the center of the Top edge.
-            /// </summary>
             Top,
-
-            /// <summary>
-            /// Center of the radial at the center of the Right edge.
-            /// </summary>
             Right,
         }
-
-        /// <summary>
-        /// One of the points of the Arc for the Image.FillMethod.Radial360.
-        /// </summary>
+        // One of the points of the Arc for the Image.FillMethod.Radial360.
         public enum Origin360
         {
-            /// <summary>
-            /// Arc starting at the center of the Bottom edge.
-            /// </summary>
             Bottom,
-
-            /// <summary>
-            /// Arc starting at the center of the Right edge.
-            /// </summary>
             Right,
-
-            /// <summary>
-            /// Arc starting at the center of the Top edge.
-            /// </summary>
             Top,
-
-            /// <summary>
-            /// Arc starting at the center of the Left edge.
-            /// </summary>
             Left,
         }
 
@@ -438,7 +289,7 @@ namespace UnityEngine.UI
         /// </example>
         public float fillAmount { get { return m_FillAmount; } set { if (SetPropertyUtility.SetStruct(ref m_FillAmount, Mathf.Clamp01(value))) SetVerticesDirty(); } }
 
-        /// Whether the Image should be filled clockwise (true) or counter-clockwise (false).
+        /// 顺时针方向.
         [SerializeField] private bool m_FillClockwise = true;
 
         /// <summary>
@@ -683,14 +534,9 @@ namespace UnityEngine.UI
             }
         }
 
-        /// <summary>
-        /// See ISerializationCallbackReceiver.
-        /// </summary>
+        
         public virtual void OnBeforeSerialize() {}
-
-        /// <summary>
-        /// See ISerializationCallbackReceiver.
-        /// </summary>
+        //在反序列化之后为了保证数据正确，这里对超出边界的值进行矫正
         public virtual void OnAfterDeserialize()
         {
             if (m_FillOrigin < 0)
@@ -705,6 +551,7 @@ namespace UnityEngine.UI
             m_FillAmount = Mathf.Clamp(m_FillAmount, 0f, 1f);
         }
 
+        //保持图片长宽比
         private void PreserveSpriteAspectRatio(ref Rect rect, Vector2 spriteSize)
         {
             var spriteRatio = spriteSize.x / spriteSize.y;
@@ -725,11 +572,14 @@ namespace UnityEngine.UI
         }
 
         /// Image's dimensions used for drawing. X = left, Y = bottom, Z = right, W = top.
+        // 最终绘制区域的大小
         private Vector4 GetDrawingDimensions(bool shouldPreserveAspect)
         {
+            //padding,x=left, y=bottom, z=right, w=top
             var padding = activeSprite == null ? Vector4.zero : Sprites.DataUtility.GetPadding(activeSprite);
+            //sprite 大小
             var size = activeSprite == null ? Vector2.zero : new Vector2(activeSprite.rect.width, activeSprite.rect.height);
-
+            //目标绘制区域的大小
             Rect r = GetPixelAdjustedRect();
             // Debug.Log(string.Format("r:{2}, size:{0}, padding:{1}", size, padding, r));
 
@@ -737,18 +587,19 @@ namespace UnityEngine.UI
             int spriteH = Mathf.RoundToInt(size.y);
 
             var v = new Vector4(
-                padding.x / spriteW,
-                padding.y / spriteH,
-                (spriteW - padding.z) / spriteW,
-                (spriteH - padding.w) / spriteH);
+                padding.x / spriteW,//padding.left / sprite宽
+                padding.y / spriteH,//padding.bottom / sprite高
+                (spriteW - padding.z) / spriteW,//(sprite宽 - padding.right) / sprite宽
+                (spriteH - padding.w) / spriteH);//(sprite高 - padding.top) / sprite高
 
             if (shouldPreserveAspect && size.sqrMagnitude > 0.0f)
             {
+                //保持图片的长宽比，重新计算绘制区域大小,这里可以勾选PreserveAspect看出变化，为了维持比例，原本铺满Recttransform的可能会铺不满，说明Mesh变化了
                 PreserveSpriteAspectRatio(ref r, size);
             }
 
             v = new Vector4(
-                r.x + r.width * v.x,
+                r.x + r.width * v.x,//padding占比计算现在padding的实际大小
                 r.y + r.height * v.y,
                 r.x + r.width * v.z,
                 r.y + r.height * v.w
@@ -763,6 +614,7 @@ namespace UnityEngine.UI
         /// <remarks>
         /// This means setting the Images RectTransform.sizeDelta to be equal to the Sprite dimensions.
         /// </remarks>
+        /// 让 RectTransform.sizeDelta = Sprite的大小
         public override void SetNativeSize()
         {
             if (activeSprite != null)
@@ -853,11 +705,10 @@ namespace UnityEngine.UI
             }
         }
 
-        /// <summary>
-        /// Generate vertices for a simple Image.
-        /// </summary>
+        // Generate vertices for a simple Image.
         void GenerateSimpleSprite(VertexHelper vh, bool lPreserveAspect)
         {
+            //计算绘制区域矩形
             Vector4 v = GetDrawingDimensions(lPreserveAspect);
             var uv = (activeSprite != null) ? Sprites.DataUtility.GetOuterUV(activeSprite) : Vector4.zero;
 
@@ -874,13 +725,17 @@ namespace UnityEngine.UI
 
         private void GenerateSprite(VertexHelper vh, bool lPreserveAspect)
         {
+            //图片大小
             var spriteSize = new Vector2(activeSprite.rect.width, activeSprite.rect.height);
 
             // Covert sprite pivot into normalized space.
+            // 按比例转化图片的中心点位置
             var spritePivot = activeSprite.pivot / spriteSize;
             var rectPivot = rectTransform.pivot;
+            //目标绘制区域大小
             Rect r = GetPixelAdjustedRect();
 
+            //保持图片的长宽比，需要重新确定绘制区域
             if (lPreserveAspect & spriteSize.sqrMagnitude > 0.0f)
             {
                 PreserveSpriteAspectRatio(ref r, spriteSize);
@@ -894,12 +749,13 @@ namespace UnityEngine.UI
 
             var color32 = color;
             vh.Clear();
-
+            //这里使用了图片自己的顶点信息
             Vector2[] vertices = activeSprite.vertices;
             Vector2[] uvs = activeSprite.uv;
             for (int i = 0; i < vertices.Length; ++i)
             {
-                vh.AddVert(new Vector3((vertices[i].x / spriteBoundSize.x) * drawingSize.x - drawOffset.x, (vertices[i].y / spriteBoundSize.y) * drawingSize.y - drawOffset.y), color32, new Vector2(uvs[i].x, uvs[i].y));
+                vh.AddVert(new Vector3((vertices[i].x / spriteBoundSize.x) * drawingSize.x - drawOffset.x, (vertices[i].y / spriteBoundSize.y) * drawingSize.y - drawOffset.y),
+                            color32, new Vector2(uvs[i].x, uvs[i].y));
             }
 
             UInt16[] triangles = activeSprite.triangles;
@@ -928,6 +784,7 @@ namespace UnityEngine.UI
 
             if (activeSprite != null)
             {
+                //图片在图集中的uv值
                 outer = Sprites.DataUtility.GetOuterUV(activeSprite);
                 inner = Sprites.DataUtility.GetInnerUV(activeSprite);
                 padding = Sprites.DataUtility.GetPadding(activeSprite);
@@ -940,8 +797,9 @@ namespace UnityEngine.UI
                 padding = Vector4.zero;
                 border = Vector4.zero;
             }
-
+            //绘制区域矩形
             Rect rect = GetPixelAdjustedRect();
+            //规范border，避免他太大超过了绘制区域矩形
             Vector4 adjustedBorders = GetAdjustedBorders(border / pixelsPerUnit, rect);
             padding = padding / pixelsPerUnit;
 
@@ -966,7 +824,7 @@ namespace UnityEngine.UI
             s_UVScratch[3] = new Vector2(outer.z, outer.w);
 
             toFill.Clear();
-
+            //生成9个
             for (int x = 0; x < 3; ++x)
             {
                 int x2 = x + 1;
@@ -980,7 +838,7 @@ namespace UnityEngine.UI
 
 
                     AddQuad(toFill,
-                        new Vector2(s_VertScratch[x].x, s_VertScratch[y].y),
+                        new Vector2(s_VertScratch[x].x, s_VertScratch[y].y),      //padding   border       outer inner
                         new Vector2(s_VertScratch[x2].x, s_VertScratch[y2].y),
                         color,
                         new Vector2(s_UVScratch[x].x, s_UVScratch[y].y),
@@ -1260,6 +1118,7 @@ namespace UnityEngine.UI
             vertexHelper.AddTriangle(startIndex + 2, startIndex + 3, startIndex);
         }
 
+        //这里主要规范border，避免他太大以至于超过了绘制矩形大小
         private Vector4 GetAdjustedBorders(Vector4 border, Rect adjustedRect)
         {
             Rect originalRect = rectTransform.rect;
@@ -1272,15 +1131,19 @@ namespace UnityEngine.UI
                 // may be slightly larger than the original rect.
                 // Adjust the border to match the adjustedRect to avoid
                 // small gaps between borders (case 833201).
+                //绘制的矩形可能会稍大于原本的矩形
                 if (originalRect.size[axis] != 0)
                 {
+                    //绘制的矩形 / 原本的矩形 = 绘制的缩放
                     borderScaleRatio = adjustedRect.size[axis] / originalRect.size[axis];
+                    //border也需要缩放
                     border[axis] *= borderScaleRatio;
                     border[axis + 2] *= borderScaleRatio;
                 }
 
                 // If the rect is smaller than the combined borders, then there's not room for the borders at their normal size.
                 // In order to avoid artefacts with overlapping borders, we scale the borders down to fit.
+                //保证border不会大于实际绘制的矩形大小，如果大于，就让他们相等
                 float combinedBorders = border[axis] + border[axis + 2];
                 if (adjustedRect.size[axis] < combinedBorders && combinedBorders != 0)
                 {

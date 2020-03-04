@@ -14,10 +14,8 @@ namespace UnityEngine.UI
     {
         static Dictionary<Font, HashSet<Text>> m_Tracked = new Dictionary<Font, HashSet<Text>>();
 
-        /// <summary>
-        /// Register a Text element for receiving texture atlas rebuild calls.
-        /// </summary>
-        /// <param name="t">The Text object to track</param>
+        // 维护了一个字典，font为key，使用font的所有Text为value。
+        // 当rebuild时会根据font调用接口
         public static void TrackText(Text t)
         {
             if (t.font == null)
@@ -51,10 +49,9 @@ namespace UnityEngine.UI
                 text.FontTextureChanged();
         }
 
-        /// <summary>
-        /// Deregister a Text element from receiving texture atlas rebuild calls.
-        /// </summary>
-        /// <param name="t">The Text object to no longer track</param>
+        // Deregister a Text element from receiving texture atlas rebuild calls.
+        // 维护了一个字典，font为key，使用font的所有Text为value。
+        // 当rebuild时会根据font调用接口
         public static void UntrackText(Text t)
         {
             if (t.font == null)
