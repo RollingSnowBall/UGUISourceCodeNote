@@ -148,6 +148,7 @@ namespace UnityEngine.EventSystems
             set { m_CancelButton = value; }
         }
 
+        //区分不同平台,mac,linux,windows返回true
         private bool ShouldIgnoreEventsOnNoFocus()
         {
             switch (SystemInfo.operatingSystemFamily)
@@ -165,6 +166,7 @@ namespace UnityEngine.EventSystems
             }
         }
 
+        //如果没有激活窗口，并且当前的点击有物体接收，就取消拖动
         public override void UpdateModule()
         {
             if (!eventSystem.isFocused && ShouldIgnoreEventsOnNoFocus())
@@ -186,6 +188,7 @@ namespace UnityEngine.EventSystems
             return m_ForceModuleActive || input.mousePresent || input.touchSupported;
         }
 
+        //
         public override bool ShouldActivateModule()
         {
             if (!base.ShouldActivateModule())
@@ -233,15 +236,18 @@ namespace UnityEngine.EventSystems
             ClearSelection();
         }
 
+        //处理当前module
         public override void Process()
         {
+            //没有激活窗口并且是一个需要在激活窗口才能操作的平台，直接返回
             if (!eventSystem.isFocused && ShouldIgnoreEventsOnNoFocus())
                 return;
-
+            //如果当前选中了物体，在一个 update 中需要执行一次 IUpdateSelectedHandler 方法
             bool usedEvent = SendUpdateEventToSelectedObject();
 
             if (eventSystem.sendNavigationEvents)
             {
+                //是不是按下了方向键
                 if (!usedEvent)
                     usedEvent |= SendMoveEventToSelectedObject();
 
@@ -410,7 +416,7 @@ namespace UnityEngine.EventSystems
                 ExecuteEvents.Execute(eventSystem.currentSelectedGameObject, data, ExecuteEvents.cancelHandler);
             return data.used;
         }
-
+        //获取方向键输入的信息
         private Vector2 GetRawMoveVector()
         {
             Vector2 move = Vector2.zero;
@@ -434,10 +440,7 @@ namespace UnityEngine.EventSystems
             return move;
         }
 
-        /// <summary>
-        /// Calculate and send a move event to the current selected object.
-        /// </summary>
-        /// <returns>If the move event was used by the selected object.</returns>
+        //获取当前方向键输入信息，移动当前物体
         protected bool SendMoveEventToSelectedObject()
         {
             float time = Time.unscaledTime;
@@ -524,6 +527,7 @@ namespace UnityEngine.EventSystems
             }
         }
 
+        //当前选中的物体执行 OnUpdateSelected 方法
         protected bool SendUpdateEventToSelectedObject()
         {
             if (eventSystem.currentSelectedGameObject == null)
@@ -534,9 +538,7 @@ namespace UnityEngine.EventSystems
             return data.used;
         }
 
-        /// <summary>
-        /// Calculate and process any mouse button state changes.
-        /// </summary>
+        //鼠标按下时先取消以前选中的物体,然后。。。
         protected void ProcessMousePress(MouseButtonEventData data)
         {
             var pointerEvent = data.buttonData;
@@ -554,9 +556,7 @@ namespace UnityEngine.EventSystems
 
                 DeselectIfSelectionChanged(currentOverGo, pointerEvent);
 
-                // search for the control that will receive the press
-                // if we can't find a press handler set the press
-                // handler to be what would receive a click.
+                //当前物体可不可以被选中，取决于他身上有没有处理点击事件的处理器
                 var newPressed = ExecuteEvents.ExecuteHierarchy(currentOverGo, pointerEvent, ExecuteEvents.pointerDownHandler);
 
                 // didnt find a press handler... search for a click handler
@@ -596,7 +596,7 @@ namespace UnityEngine.EventSystems
                 m_InputPointerEvent = pointerEvent;
             }
 
-            // PointerUp notification
+            // PointerUp notification,点击抬起
             if (data.ReleasedThisFrame())
             {
                 // Debug.Log("Executing pressup on: " + pointer.pointerPress);

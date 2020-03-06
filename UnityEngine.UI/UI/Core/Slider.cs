@@ -16,29 +16,12 @@ namespace UnityEngine.UI
     /// </remarks>
     public class Slider : Selectable, IDragHandler, IInitializePotentialDragHandler, ICanvasElement
     {
-        /// <summary>
-        /// Setting that indicates one of four directions.
-        /// </summary>
+        //方向
         public enum Direction
         {
-            /// <summary>
-            /// From the left to the right
-            /// </summary>
             LeftToRight,
-
-            /// <summary>
-            /// From the right to the left
-            /// </summary>
             RightToLeft,
-
-            /// <summary>
-            /// From the bottom to the top.
-            /// </summary>
             BottomToTop,
-
-            /// <summary>
-            /// From the top to the bottom.
-            /// </summary>
             TopToBottom,
         }
 
@@ -277,10 +260,12 @@ namespace UnityEngine.UI
         /// }
         /// </code>
         /// </example>
+        //返回值在设定的最大值与最小值之间的比例
         public float normalizedValue
         {
             get
             {
+                //最大值与最小值近似,返回0
                 if (Mathf.Approximately(minValue, maxValue))
                     return 0;
                 return Mathf.InverseLerp(minValue, maxValue, value);
@@ -607,6 +592,7 @@ namespace UnityEngine.UI
             }
         }
 
+        //？？这里是怎么实现的？
         public virtual void OnDrag(PointerEventData eventData)
         {
             if (!MayDrag(eventData))

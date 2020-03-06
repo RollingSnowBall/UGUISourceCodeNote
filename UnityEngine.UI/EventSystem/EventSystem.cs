@@ -21,7 +21,6 @@ namespace UnityEngine.EventSystems
         private BaseInputModule m_CurrentInputModule;
 
         private  static List<EventSystem> m_EventSystems = new List<EventSystem>();
-
         /// <summary>
         /// Return the current EventSystem.
         /// </summary>
@@ -46,8 +45,8 @@ namespace UnityEngine.EventSystems
 
         [SerializeField]
         private bool m_sendNavigationEvents = true;
-
         /// <summary>
+        /// 这个事件处理器支持一些导航的事件吗
         /// Should the EventSystem allow navigation events (move / submit / cancel).
         /// </summary>
         public bool sendNavigationEvents
@@ -58,7 +57,6 @@ namespace UnityEngine.EventSystems
 
         [SerializeField]
         private int m_DragThreshold = 10;
-
         /// <summary>
         /// The soft area for dragging in pixels.
         /// </summary>
@@ -69,7 +67,6 @@ namespace UnityEngine.EventSystems
         }
 
         private GameObject m_CurrentSelected;
-
         /// <summary>
         /// The currently active EventSystems.BaseInputModule.
         /// </summary>
@@ -122,6 +119,7 @@ namespace UnityEngine.EventSystems
         /// </summary>
         public void UpdateModules()
         {
+            //获取go上所有已经激活的BaseInputModule。
             GetComponents(m_SystemInputModules);
             for (int i = m_SystemInputModules.Count - 1; i >= 0; i--)
             {
@@ -133,7 +131,6 @@ namespace UnityEngine.EventSystems
         }
 
         private bool m_SelectionGuard;
-
         /// <summary>
         /// Returns true if the EventSystem is already in a SetSelectedGameObject.
         /// </summary>
@@ -141,12 +138,13 @@ namespace UnityEngine.EventSystems
         {
             get { return m_SelectionGuard; }
         }
+        // 选中物体包括，取消以前的选中物体，然后选中目前的物体
+        public void SetSelectedGameObject(GameObject selected)
+        {
+            SetSelectedGameObject(selected, baseEventDataCache);
+        }
 
-        /// <summary>
-        /// Set the object as selected. Will send an OnDeselect the the old selected object and OnSelect to the new selected object.
-        /// </summary>
-        /// <param name="selected">GameObject to select.</param>
-        /// <param name="pointer">Associated EventData.</param>
+        // 选中物体包括，取消以前的选中物体，然后选中目前的物体
         public void SetSelectedGameObject(GameObject selected, BaseEventData pointer)
         {
             if (m_SelectionGuard)
@@ -161,8 +159,7 @@ namespace UnityEngine.EventSystems
                 m_SelectionGuard = false;
                 return;
             }
-
-            // Debug.Log("Selection: new (" + selected + ") old (" + m_CurrentSelected + ")");
+            // 选中物体包括，取消以前的选中物体，然后选中目前的物体
             ExecuteEvents.Execute(m_CurrentSelected, pointer, ExecuteEvents.deselectHandler);
             m_CurrentSelected = selected;
             ExecuteEvents.Execute(m_CurrentSelected, pointer, ExecuteEvents.selectHandler);
@@ -181,15 +178,7 @@ namespace UnityEngine.EventSystems
             }
         }
 
-        /// <summary>
-        /// Set the object as selected. Will send an OnDeselect the the old selected object and OnSelect to the new selected object.
-        /// </summary>
-        /// <param name="selected">GameObject to select.</param>
-        public void SetSelectedGameObject(GameObject selected)
-        {
-            SetSelectedGameObject(selected, baseEventDataCache);
-        }
-
+        //module.eventCamera.depth) (module.sortOrderPriority) (sortingLayer) (sortingOrder) (depth)(distance)(index)
         private static int RaycastComparer(RaycastResult lhs, RaycastResult rhs)
         {
             if (lhs.module != rhs.module)
@@ -238,6 +227,7 @@ namespace UnityEngine.EventSystems
         private static readonly Comparison<RaycastResult> s_RaycastComparer = RaycastComparer;
 
         /// <summary>
+        /// 使用配置的射线
         /// Raycast into the scene using all configured BaseRaycasters.
         /// </summary>
         /// <param name="eventData">Current pointer data.</param>
@@ -351,13 +341,13 @@ namespace UnityEngine.EventSystems
                 {
                     if (m_CurrentInputModule != module)
                     {
-                        ChangeEventModule(module);
+                        ChangeEventModule(module);//m_CurrentInputModule = module
                         changedModule = true;
                     }
                     break;
                 }
             }
-
+             
             // no event module set... set the first valid one...
             if (m_CurrentInputModule == null)
             {
@@ -366,7 +356,7 @@ namespace UnityEngine.EventSystems
                     var module = m_SystemInputModules[i];
                     if (module.IsModuleSupported())
                     {
-                        ChangeEventModule(module);
+                        ChangeEventModule(module);//m_CurrentInputModule = module
                         changedModule = true;
                         break;
                     }
@@ -374,9 +364,10 @@ namespace UnityEngine.EventSystems
             }
 
             if (!changedModule && m_CurrentInputModule != null)
-                m_CurrentInputModule.Process();
+                m_CurrentInputModule.Process();//处理
         }
 
+        //m_CurrentInputModule = module
         private void ChangeEventModule(BaseInputModule module)
         {
             if (m_CurrentInputModule == module)

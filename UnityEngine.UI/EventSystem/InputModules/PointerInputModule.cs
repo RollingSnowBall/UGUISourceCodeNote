@@ -5,6 +5,7 @@ using UnityEngine.UI;
 namespace UnityEngine.EventSystems
 {
     /// <summary>
+    /// 点输入
     /// A BaseInputModule for pointer input.
     /// </summary>
     public abstract class PointerInputModule : BaseInputModule
@@ -31,13 +32,7 @@ namespace UnityEngine.EventSystems
 
         protected Dictionary<int, PointerEventData> m_PointerData = new Dictionary<int, PointerEventData>();
 
-        /// <summary>
-        /// Search the cache for currently active pointers, return true if found.
-        /// </summary>
-        /// <param name="id">Touch ID</param>
-        /// <param name="data">Found data</param>
-        /// <param name="create">If not found should it be created</param>
-        /// <returns>True if pointer is found.</returns>
+        
         protected bool GetPointerData(int id, out PointerEventData data, bool create)
         {
             if (!m_PointerData.TryGetValue(id, out data) && create)
@@ -61,25 +56,23 @@ namespace UnityEngine.EventSystems
         }
 
         /// <summary>
+        /// 创建一个PointerEventData，根据input
         /// Given a touch populate the PointerEventData and return if we are pressed or released.
         /// </summary>
-        /// <param name="input">Touch being processed</param>
-        /// <param name="pressed">Are we pressed this frame</param>
-        /// <param name="released">Are we released this frame</param>
-        /// <returns></returns>
         protected PointerEventData GetTouchPointerEventData(Touch input, out bool pressed, out bool released)
         {
             PointerEventData pointerData;
+            //创建一个PointerEventData
             var created = GetPointerData(input.fingerId, out pointerData, true);
 
             pointerData.Reset();
-
+            //新建的event，并且这个输入是刚开始点击
             pressed = created || (input.phase == TouchPhase.Began);
             released = (input.phase == TouchPhase.Canceled) || (input.phase == TouchPhase.Ended);
 
             if (created)
                 pointerData.position = input.position;
-
+            //划过的区域
             if (pressed)
                 pointerData.delta = Vector2.zero;
             else
@@ -104,9 +97,6 @@ namespace UnityEngine.EventSystems
             return pointerData;
         }
 
-        /// <summary>
-        /// Copy one PointerEventData to another.
-        /// </summary>
         protected void CopyFromTo(PointerEventData @from, PointerEventData @to)
         {
             @to.position = @from.position;
@@ -117,9 +107,8 @@ namespace UnityEngine.EventSystems
         }
 
         /// <summary>
+        /// 一帧之内button的操作是按下还是松开
         /// Given a mouse button return the current state for the frame.
-        /// </summary>
-        /// <param name="buttonId">Mouse button ID</param>
         protected PointerEventData.FramePressState StateForMouseButton(int buttonId)
         {
             var pressed = input.GetMouseButtonDown(buttonId);
@@ -133,6 +122,9 @@ namespace UnityEngine.EventSystems
             return PointerEventData.FramePressState.NotChanged;
         }
 
+        //inputButton 左键 右键 中键
+        //和 MouseButtonEventData
+        //主要是一次点击的信息
         protected class ButtonState
         {
             private PointerEventData.InputButton m_Button = PointerEventData.InputButton.Left;
@@ -152,6 +144,7 @@ namespace UnityEngine.EventSystems
             private MouseButtonEventData m_EventData;
         }
 
+        //一连串点击的信息
         protected class MouseState
         {
             private List<ButtonState> m_TrackedButtons = new List<ButtonState>();
@@ -176,6 +169,7 @@ namespace UnityEngine.EventSystems
                 return false;
             }
 
+            //获取 m_TrackedButtons 中是button状态的 item，如果没有就新建一个放入数组
             public ButtonState GetButtonState(PointerEventData.InputButton button)
             {
                 ButtonState tracked = null;
@@ -204,9 +198,7 @@ namespace UnityEngine.EventSystems
             }
         }
 
-        /// <summary>
-        /// Information about a mouse button event.
-        /// </summary>
+        //一帧内鼠标点击信息包括点击状态和位置和点击物体等
         public class MouseButtonEventData
         {
             /// <summary>
@@ -247,7 +239,7 @@ namespace UnityEngine.EventSystems
         }
 
         /// <summary>
-        /// Return the current MouseState.
+        /// 当前鼠标左键右键中间信息（位置、拖动距离、点击到的物体）
         /// </summary>
         protected virtual MouseState GetMousePointerEventData(int id)
         {
@@ -297,9 +289,7 @@ namespace UnityEngine.EventSystems
             return m_MouseState;
         }
 
-        /// <summary>
-        /// Return the last PointerEventData for the given touch / mouse id.
-        /// </summary>
+        //根据id返回m_PointerData中的PointerEventData
         protected PointerEventData GetLastPointerEventData(int id)
         {
             PointerEventData data;
@@ -307,6 +297,8 @@ namespace UnityEngine.EventSystems
             return data;
         }
 
+        //拖动有一个界限，如果拖动的距离小于这个界限则认为没有拖动
+        //也可以忽视这个界限，总是认为拖动了
         private static bool ShouldStartDrag(Vector2 pressPos, Vector2 currentPos, float threshold, bool useDragThreshold)
         {
             if (!useDragThreshold)
@@ -316,6 +308,7 @@ namespace UnityEngine.EventSystems
         }
 
         /// <summary>
+        /// 这里应该是从一个物体移动到另一个物体之后需要更新信息
         /// Process movement for the current frame with the given pointer event.
         /// </summary>
         protected virtual void ProcessMove(PointerEventData pointerEvent)
@@ -358,6 +351,7 @@ namespace UnityEngine.EventSystems
             }
         }
 
+        //有没有点到物体
         public override bool IsPointerOverGameObject(int pointerId)
         {
             var lastPointer = GetLastPointerEventData(pointerId);
@@ -397,11 +391,7 @@ namespace UnityEngine.EventSystems
             return sb.ToString();
         }
 
-        /// <summary>
-        /// Deselect the current selected GameObject if the currently pointed-at GameObject is different.
-        /// </summary>
-        /// <param name="currentOverGo">The GameObject the pointer is currently over.</param>
-        /// <param name="pointerEvent">Current event data.</param>
+        //当前按在不同物体时取消以前的物体选中
         protected void DeselectIfSelectionChanged(GameObject currentOverGo, BaseEventData pointerEvent)
         {
             // Selection tracking

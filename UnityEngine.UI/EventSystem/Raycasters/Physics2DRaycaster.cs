@@ -36,7 +36,7 @@ namespace UnityEngine.EventSystems
             {
                 if (ReflectionMethodsCache.Singleton.getRayIntersectionAll == null)
                     return;
-
+                //反射调用Physics2D.GetRayIntersectionAll方法 获取碰撞到的所有物体，然后获取最近的一个物体的距离hitDIstance
                 m_Hits = ReflectionMethodsCache.Singleton.getRayIntersectionAll(ray, distanceToClipPlane, finalEventMask);
                 hitCount = m_Hits.Length;
             }

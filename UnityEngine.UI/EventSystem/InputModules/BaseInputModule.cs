@@ -45,9 +45,7 @@ namespace UnityEngine.EventSystems
         protected BaseInput m_InputOverride;
         private BaseInput m_DefaultInput;
 
-        /// <summary>
-        /// The current BaseInput being used by the input module.
-        /// </summary>
+        //BaseInput是挂在对象上面的MonoBehaviour
         public BaseInput input
         {
             get
@@ -111,9 +109,7 @@ namespace UnityEngine.EventSystems
         /// </summary>
         public abstract void Process();
 
-        /// <summary>
-        /// Return the first valid RaycastResult.
-        /// </summary>
+        //返回第一个被点击的物体的结果
         protected static RaycastResult FindFirstRaycast(List<RaycastResult> candidates)
         {
             for (var i = 0; i < candidates.Count; ++i)
@@ -126,22 +122,13 @@ namespace UnityEngine.EventSystems
             return new RaycastResult();
         }
 
-        /// <summary>
-        /// Given an input movement, determine the best MoveDirection.
-        /// </summary>
-        /// <param name="x">X movement.</param>
-        /// <param name="y">Y movement.</param>
+        //确定具体方向，只会有上下左右，如果同时按住两个方向键，哪个方向的键值大确定哪个方向
         protected static MoveDirection DetermineMoveDirection(float x, float y)
         {
             return DetermineMoveDirection(x, y, 0.6f);
         }
 
-        /// <summary>
-        /// Given an input movement, determine the best MoveDirection.
-        /// </summary>
-        /// <param name="x">X movement.</param>
-        /// <param name="y">Y movement.</param>
-        /// <param name="deadZone">Dead zone.</param>
+        //确定具体方向，只会有上下左右，如果同时按住两个方向键，哪个方向的键值大确定哪个方向
         protected static MoveDirection DetermineMoveDirection(float x, float y, float deadZone)
         {
             // if vector is too small... just return
@@ -162,12 +149,7 @@ namespace UnityEngine.EventSystems
             }
         }
 
-        /// <summary>
-        /// Given 2 GameObjects, return a common root GameObject (or null).
-        /// </summary>
-        /// <param name="g1">GameObject to compare</param>
-        /// <param name="g2">GameObject to compare</param>
-        /// <returns></returns>
+        //返回g1 g2 共同的根节点
         protected static GameObject FindCommonRoot(GameObject g1, GameObject g2)
         {
             if (g1 == null || g2 == null)
@@ -198,6 +180,7 @@ namespace UnityEngine.EventSystems
             // then exit
             if (newEnterTarget == null || currentPointerData.pointerEnter == null)
             {
+                //currentPointerData的hovereds执行IPointerExitHandler
                 for (var i = 0; i < currentPointerData.hovered.Count; ++i)
                     ExecuteEvents.Execute(currentPointerData.hovered[i], currentPointerData, ExecuteEvents.pointerExitHandler);
 
@@ -216,6 +199,7 @@ namespace UnityEngine.EventSystems
 
             GameObject commonRoot = FindCommonRoot(currentPointerData.pointerEnter, newEnterTarget);
 
+            //找到newEnterTarget与pointerEnter的共同根节点,根节点到pointerEnter中间的所有节点执行IPointerExitHandler
             // and we already an entered object from last time
             if (currentPointerData.pointerEnter != null)
             {
@@ -235,6 +219,7 @@ namespace UnityEngine.EventSystems
                 }
             }
 
+            ////找到newEnterTarget与pointerEnter的共同根节点,根节点到newEnterTarget中间的所有节点执行IPointerEnterHandler
             // now issue the enter call up to but not including the common root
             currentPointerData.pointerEnter = newEnterTarget;
             if (newEnterTarget != null)
@@ -250,12 +235,7 @@ namespace UnityEngine.EventSystems
             }
         }
 
-        /// <summary>
-        /// Given some input data generate an AxisEventData that can be used by the event system.
-        /// </summary>
-        /// <param name="x">X movement.</param>
-        /// <param name="y">Y movement.</param>
-        /// <param name="deadZone">Dead zone.</param>
+        //根据x y 返回一个方向
         protected virtual AxisEventData GetAxisEventData(float x, float y, float moveDeadZone)
         {
             if (m_AxisEventData == null)
@@ -304,6 +284,7 @@ namespace UnityEngine.EventSystems
         {}
 
         /// <summary>
+        /// 一个回调方法，当EventSystem激活当前modul时，也就是当EventSystem把这个modul从列表中取出，放到当前modul中时调用
         /// Called when the module is activated. Override this if you want custom code to execute when you activate your module.
         /// </summary>
         public virtual void ActivateModule()

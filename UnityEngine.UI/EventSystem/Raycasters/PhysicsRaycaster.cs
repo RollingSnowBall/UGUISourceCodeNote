@@ -27,6 +27,7 @@ namespace UnityEngine.EventSystems
         protected LayerMask m_EventMask = kNoEventMaskSet;
 
         /// <summary>
+        /// 射线可以穿透的物体的数量
         /// The max number of intersections allowed. 0 = allocating version anything else is non alloc.
         /// </summary>
         [SerializeField]
@@ -87,21 +88,21 @@ namespace UnityEngine.EventSystems
         }
 
         /// <summary>
+        /// 相机到点的射线和距离
         /// Returns a ray going from camera through the event position and the distance between the near and far clipping planes along that ray.
         /// </summary>
-        /// <param name="eventData">The pointer event for which we will cast a ray.</param>
-        /// <param name="ray">The ray to use.</param>
-        /// <param name="distanceToClipPlane">The distance between the near and far clipping planes along the ray.</param>
         protected void ComputeRayAndDistance(PointerEventData eventData, out Ray ray, out float distanceToClipPlane)
         {
             ray = eventCamera.ScreenPointToRay(eventData.position);
             // compensate far plane distance - see MouseEvents.cs
             float projectionDirection = ray.direction.z;
+            //这里获取的是这个相机在ray方向上的最长的距离
             distanceToClipPlane = Mathf.Approximately(0.0f, projectionDirection)
                 ? Mathf.Infinity
                 : Mathf.Abs((eventCamera.farClipPlane - eventCamera.nearClipPlane) / projectionDirection);
         }
 
+        // 相机向点发出射线获取结果(照射到的物体等等)
         public override void Raycast(PointerEventData eventData, List<RaycastResult> resultAppendList)
         {
             // Cull ray casts that are outside of the view rect. (case 636595)
@@ -116,9 +117,10 @@ namespace UnityEngine.EventSystems
 
             if (m_MaxRayIntersections == 0)
             {
+                //获取Physics.RaycastAll的反射方法
                 if (ReflectionMethodsCache.Singleton.raycast3DAll == null)
                     return;
-
+                //反射调用Physics.RaycastAll方法 获取射线碰到的所有物体，然后获取最近的第一个物体的距离hitDIstance
                 m_Hits = ReflectionMethodsCache.Singleton.raycast3DAll(ray, distanceToClipPlane, finalEventMask);
                 hitCount = m_Hits.Length;
             }
@@ -126,7 +128,7 @@ namespace UnityEngine.EventSystems
             {
                 if (ReflectionMethodsCache.Singleton.getRaycastNonAlloc == null)
                     return;
-
+                // 获取一定数量的射线碰到的物体
                 if (m_LastMaxRayIntersections != m_MaxRayIntersections)
                 {
                     m_Hits = new RaycastHit[m_MaxRayIntersections];

@@ -33,6 +33,7 @@ namespace UnityEngine.EventSystems
             set { m_ForceModuleActive = value; }
         }
 
+        //更新当前输入信息的module
         public override void UpdateModule()
         {
             if (!eventSystem.isFocused)

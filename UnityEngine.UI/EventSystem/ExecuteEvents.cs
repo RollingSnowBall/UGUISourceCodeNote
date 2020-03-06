@@ -22,6 +22,7 @@ namespace UnityEngine.EventSystems
             handler.OnPointerEnter(ValidateEventData<PointerEventData>(eventData));
         }
 
+        //这里的Excute用了重载的方法，当传进不同事件处理器做参数时调用不同的Excute继而调用不同的处理器接口
         private static readonly EventFunction<IPointerExitHandler> s_PointerExitHandler = Execute;
 
         private static void Execute(IPointerExitHandler handler, BaseEventData eventData)
@@ -238,6 +239,7 @@ namespace UnityEngine.EventSystems
         public static bool Execute<T>(GameObject target, BaseEventData eventData, EventFunction<T> functor) where T : IEventSystemHandler
         {
             var internalHandlers = s_HandlerListPool.Get();
+            //先获取target上面的事件处理组件
             GetEventList<T>(target, internalHandlers);
             //  if (s_InternalHandlers.Count > 0)
             //      Debug.Log("Executinng " + typeof (T) + " on " + target);
@@ -289,6 +291,7 @@ namespace UnityEngine.EventSystems
             return null;
         }
 
+        //这个component需要时isActiveAndEnabled
         private static bool ShouldSendToComponent<T>(Component component) where T : IEventSystemHandler
         {
             var valid = component is T;
@@ -301,9 +304,7 @@ namespace UnityEngine.EventSystems
             return true;
         }
 
-        /// <summary>
-        /// Get the specified object's event event.
-        /// </summary>
+        //获取go可以接收事件处理的Handle
         private static void GetEventList<T>(GameObject go, IList<IEventSystemHandler> results) where T : IEventSystemHandler
         {
             // Debug.LogWarning("GetEventList<" + typeof(T).Name + ">");
@@ -317,6 +318,7 @@ namespace UnityEngine.EventSystems
             go.GetComponents(components);
             for (var i = 0; i < components.Count; i++)
             {
+                ////这个component需要时isActiveAndEnabled，并且继承了IEventSystemHandler，能够处理相应的事件
                 if (!ShouldSendToComponent<T>(components[i]))
                     continue;
 

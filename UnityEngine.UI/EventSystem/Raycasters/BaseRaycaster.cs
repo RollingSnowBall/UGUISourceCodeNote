@@ -25,7 +25,7 @@ namespace UnityEngine.EventSystems
         public abstract Camera eventCamera { get; }
 
         [Obsolete("Please use sortOrderPriority and renderOrderPriority", false)]
-        public virtual int priority
+        public virtual int priority //优先级
         {
             get { return 0; }
         }

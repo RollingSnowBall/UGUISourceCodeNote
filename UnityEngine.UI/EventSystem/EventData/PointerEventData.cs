@@ -4,9 +4,7 @@ using System.Collections.Generic;
 
 namespace UnityEngine.EventSystems
 {
-    /// <summary>
-    /// Each touch event creates one of these containing all the relevant information.
-    /// </summary>
+    // 每次点击事件就会创建PointerEventData来包含所有的相关信息
     public class PointerEventData : BaseEventData
     {
         /// <summary>
@@ -14,45 +12,16 @@ namespace UnityEngine.EventSystems
         /// </summary>
         public enum InputButton
         {
-            /// <summary>
-            /// Left button
-            /// </summary>
             Left = 0,
-
-            /// <summary>
-            /// Right button.
-            /// </summary>
             Right = 1,
-
-            /// <summary>
-            /// Middle button
-            /// </summary>
             Middle = 2
         }
 
-        /// <summary>
-        /// The state of a press for the given frame.
-        /// </summary>
         public enum FramePressState
         {
-            /// <summary>
-            /// Button was pressed this frame.
-            /// </summary>
             Pressed,
-
-            /// <summary>
-            /// Button was released this frame.
-            /// </summary>
             Released,
-
-            /// <summary>
-            /// Button was pressed and released this frame.
-            /// </summary>
             PressedAndReleased,
-
-            /// <summary>
-            /// Same as last frame.
-            /// </summary>
             NotChanged
         }
 
@@ -89,6 +58,7 @@ namespace UnityEngine.EventSystems
         /// </summary>
         public RaycastResult pointerPressRaycast { get; set; }
 
+        //点击的物体的父物体和父物体的父物体...
         public List<GameObject> hovered = new List<GameObject>();
 
         /// <summary>

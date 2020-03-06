@@ -1,5 +1,7 @@
 namespace UnityEngine.EventSystems
 {
+    /*******这里封装了Input的一些接口**********/
+
     /// <summary>
     /// Interface to the Input system used by the BaseInputModule. With this it is possible to bypass the Input system with your own but still use the same InputModule. For example this can be used to feed fake input into the UI or interface with a different input system.
     /// </summary>
@@ -8,6 +10,7 @@ namespace UnityEngine.EventSystems
         /// <summary>
         /// Interface to Input.compositionString. Can be overridden to provide custom input instead of using the Input class.
         /// </summary>
+        /// Input.compositionString的接口，可以被重写来代替Input类
         public virtual string compositionString
         {
             get { return Input.compositionString; }
